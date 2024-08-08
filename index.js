@@ -1,7 +1,15 @@
 const express = require('express');
+const cors = require('cors');
 const bodyParser = require('body-parser');
 
 const app = express();
+
+
+app.use(cors({
+    origin: 'http://localhost:5173',
+    allowedHeaders: ['Content-Type'],
+}));
+
 const port = 3000;
 
 // // Middleware to parse JSON bodies
@@ -52,6 +60,23 @@ async function checkIfExist(name) {
     });
 }
 
+async function getLength() {
+    const sql = `SELECT COUNT(*) AS count FROM ticket`;
+
+    return new Promise((resolve, reject) => {
+        db.get(sql, (err, row) => {
+            if (err) {
+                console.error(err.message);
+                reject(err);
+                return;
+            }
+
+            // Return the count of all documents (rows) in the table
+            resolve(row.count);
+        });
+    });
+}
+
 
 // POST request handler
 app.post('/checkIdAndAdd', (req, res) => {
@@ -74,10 +99,24 @@ app.post('/checkIdAndAdd', (req, res) => {
         console.error('Error checking existence:', error);
     }
     })();
-
-
-    
 });
+
+
+app.get('/getLength', (req, res) => {
+    (async () => {
+    try {
+        console.log("--------");
+        const length = await getLength();
+        console.log(`ID exists: ${length}`);
+       
+        res.send({ message: 'Data received successfully', data: length });
+    } catch (error) {
+        console.error('Error checking existence:', error);
+    }
+    })();
+});
+
+
 
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
